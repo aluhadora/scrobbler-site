@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import Track from './Track.js';
 import * as Actions from './Actions.js';
-var $ = require('jQuery');
+var $ = require('jquery');
 
 class App extends Component {
   updateTracks(context) {
