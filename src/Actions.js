@@ -1,4 +1,4 @@
-var $ = require('jQuery');
+var $ = require('jquery');
 
 var api = '888f48f85285e39075b7e1a461863d81';
 var defaultUser = 'aluhadora';
