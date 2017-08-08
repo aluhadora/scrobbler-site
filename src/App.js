@@ -30,8 +30,6 @@ class App extends Component {
     var context = this;
     this.updateTracks(context);
     setInterval(() => this.updateTracks(context), 5000);
-
-
   }
 
   componentDidUpdate() {
@@ -43,6 +41,15 @@ class App extends Component {
       }
     }
     });
+  }
+
+  imgLink(track) {
+    if (!track || !track.image || !track.image.length) return '';
+    
+    if (track.image.length > 2) return track.image[2]['#text'];
+    
+    console.log(track);
+    return track.image[track.image.length - 1]['#text'];
   }
 
   render() {

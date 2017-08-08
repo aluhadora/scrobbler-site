@@ -35,7 +35,7 @@ class Track extends Component {
     return (
       <div className="Track" style={{opacity: index === 0 ? '1' : '0.8'}}>
         <div className="Album-Art">
-          <img src={img} alt="logo" height="96" />
+          <img src={img} alt="album" height="96" width="96" />
         </div>
         <div className="Track-Info">
           <div className="Info-line">
