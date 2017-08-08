@@ -33,7 +33,7 @@ class Track extends Component {
     const { name, artist, album, img, attr, date, index } = this.props;
 
     return (
-      <div className="Track" style={{opacity: index === 0 ? '1' : '0.5'}}>
+      <div className="Track" style={{opacity: index === 0 ? '1' : '0.8'}}>
         <div className="Album-Art">
           <img src={img} alt="logo" height="96" />
         </div>
