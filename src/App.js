@@ -20,7 +20,7 @@ class App extends Component {
 
     var url = new URL(window.location);
     var user = url.searchParams.get('user');
-    user = user ? user : Actions.user();
+
     if (user) this.setState(function () {
       return {
         user: user
@@ -45,9 +45,9 @@ class App extends Component {
 
   imgLink(track) {
     if (!track || !track.image || !track.image.length) return '';
-    
+
     if (track.image.length > 2) return track.image[2]['#text'];
-    
+
     console.log(track);
     return track.image[track.image.length - 1]['#text'];
   }
@@ -59,17 +59,26 @@ class App extends Component {
     const { tracks, user } = this.state;
     var trackControls = [];
 
-    for (var i = 0; i < tracks.length; i++) {
-      var track = tracks[i];
-      trackControls.push(<Track key={i} name={track.name} artist={track.artist['#text']}
+    if (tracks) {
+      for (var i = 0; i < tracks.length; i++) {
+        var track = tracks[i];
+        trackControls.push(<Track key={i} name={track.name} artist={track.artist['#text']}
         album={track.album['#text']} img={track.image[2]['#text']} attr={track.attr}
         date={track.date} index={i} />);
+      }
     }
 
     var message = (<div></div>);
-    if (tracks.error) message = (
+    if (tracks && tracks.error) message = (
       <p className="App-intro">
         {tracks.message}
+      </p>
+    );
+
+    var display = (<div></div>);
+    if (tracks && !tracks.hideDisplay) display = (
+      <p className="App-intro">
+        Pulling recent tracks from <code>{user}</code>.
       </p>
     );
 
@@ -78,9 +87,7 @@ class App extends Component {
         <p className="App-intro" style={{ paddingLeft: '1em', paddingBottom: '1em'}}>
           User: <input type="text" id="lastFm" defaultValue={user}></input>
         </p>
-        <p className="App-intro">
-          Pulling recent tracks from <code>{user}</code>.
-        </p>
+        {display}
         {message}
         {trackControls}
       </div>
