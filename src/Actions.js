@@ -1,4 +1,5 @@
 var $ = require('jquery');
+var spotifyQueries = {};
 
 export function pullTracks (callback, user) {
   if (!user) {
@@ -14,7 +15,6 @@ export function pullTracks (callback, user) {
      url: url,
      async: false
    }).done(data => {
-     console.log(data);
      callback(data);
    });
 }
@@ -22,6 +22,9 @@ export function pullTracks (callback, user) {
 export function querySpotifyForImage (callback, track) {
   var url = 'https://api.spotify.com/v1/search?q=' + track.album['#text'] +
    '&type=album';
+
+  if (spotifyQueries[url]) return callback(spotifyQueries[url]);
+
 
   $.ajax({
     method: 'Get',
@@ -31,7 +34,7 @@ export function querySpotifyForImage (callback, track) {
       'Authorization': 'Bearer ' + process.env.REACT_APP_SPOTIFY_TOKEN
     }
   }).done(data => {
-    console.log('spotify query');
-    console.log(data);
+    spotifyQueries[url] = data;
+    callback(data);
   });
 }

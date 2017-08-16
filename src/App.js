@@ -43,10 +43,11 @@ class App extends Component {
   }
 
   imgLink(track) {
-    var fromTrack = imgLinkFromTrack(track);
+    var fromTrack = this.imgLinkFromTrack(track);
     if (fromTrack) return fromTrack;
 
-    Actions.querySpotifyForImage(track)
+    Actions.querySpotifyForImage(function (data) { fromTrack = data.albums.items[0].images[1].url;}, track);
+    return fromTrack;
   }
 
   imgLinkFromTrack(track) {
