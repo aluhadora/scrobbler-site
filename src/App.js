@@ -7,7 +7,6 @@ var $ = require('jquery');
 class App extends Component {
   updateTracks(context) {
     Actions.pullTracks(obj => {
-      console.log(obj);
       context.setState(function () {
         return {
           tracks: obj.error ? obj: obj.recenttracks.track,
@@ -44,11 +43,17 @@ class App extends Component {
   }
 
   imgLink(track) {
+    var fromTrack = imgLinkFromTrack(track);
+    if (fromTrack) return fromTrack;
+
+    Actions.querySpotifyForImage(track)
+  }
+
+  imgLinkFromTrack(track) {
     if (!track || !track.image || !track.image.length) return '';
 
     if (track.image.length > 2) return track.image[2]['#text'];
 
-    console.log(track);
     return track.image[track.image.length - 1]['#text'];
   }
 
@@ -63,7 +68,7 @@ class App extends Component {
       for (var i = 0; i < tracks.length; i++) {
         var track = tracks[i];
         trackControls.push(<Track key={i} name={track.name} artist={track.artist['#text']}
-        album={track.album['#text']} img={track.image[2]['#text']} attr={track.attr}
+        album={track.album['#text']} img={this.imgLink(track)} attr={track.attr}
         date={track.date} index={i} />);
       }
     }

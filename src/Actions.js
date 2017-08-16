@@ -18,3 +18,20 @@ export function pullTracks (callback, user) {
      callback(data);
    });
 }
+
+export function querySpotifyForImage (callback, track) {
+  var url = 'https://api.spotify.com/v1/search?q=' + track.album['#text'] +
+   '&type=album';
+
+  $.ajax({
+    method: 'Get',
+    url: url,
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer ' + process.env.REACT_APP_SPOTIFY_TOKEN
+    }
+  }).done(data => {
+    console.log('spotify query');
+    console.log(data);
+  });
+}
