@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import AlbumArt from './AlbumArt.js';
 
 class Track extends Component {
 
@@ -30,25 +31,23 @@ class Track extends Component {
   }
 
   render() {
-    const { name, artist, album, img, attr, date, index } = this.props;
+    const { track, index } = this.props;
 
     return (
       <div className="Track" style={{opacity: index === 0 ? '1' : '0.8'}}>
-        <div className="Album-Art">
-          <img src={img} alt="album" height="96" width="96" />
-        </div>
+        <AlbumArt track={track} />
         <div className="Track-Info">
           <div className="Info-line">
-            <span className="Info-Field">Track:</span> {name}
+            <span className="Info-Field">Track:</span> {track.name}
           </div>
           <div className="Info-line">
-            <span className="Info-Field">Artist:</span> {artist}
+            <span className="Info-Field">Artist:</span> {track.artist}
           </div>
           <div className="Info-line">
-            <span className="Info-Field">Album:</span> {album}
+            <span className="Info-Field">Album:</span> {track.album}
           </div>
           <div className="Info-line" style={{paddingTop: '6px'}}>
-            <span className="Info-Field">{this.dateline(attr, date)}</span>
+            <span className="Info-Field">{this.dateline(track.attr, track.date)}</span>
           </div>
         </div>
       </div>

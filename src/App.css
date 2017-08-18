@@ -19,6 +19,45 @@
   display: table-cell;
   padding-right: 1em;
   padding-left: 1em;
+  height: 96px !important;
+  width: 96px;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.Album-Img {
+  height: 96px;
+  width: 96px;
+  position: absolute;
+  top: 0;
+  left: 1em;
+}
+
+.Spotify-Play-Wrapper {
+  height: 68px;
+  width: 68px;
+  left: calc(1em + 14px);
+  top: 14px;
+  position: absolute;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.Spotify-Play {
+  position: absolute;
+  z-index: 2;
+  opacity: .2;
+}
+
+iframe {
+  position: absolute;
+  left: -8px;
+  top: -8px;
+}
+
+.Spotify-Play:hover{
+  opacity: .8;
 }
 
 .Track-Info {

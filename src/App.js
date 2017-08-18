@@ -5,20 +5,33 @@ import * as Actions from './Actions.js';
 var $ = require('jquery');
 
 class App extends Component {
-  updateTracks(context) {
+  updateTracks (context) {
     Actions.pullTracks(obj => {
       context.setState(function () {
         return {
-          tracks: obj.error ? obj: obj.recenttracks.track,
+          tracks: obj.error ? obj : obj.recenttracks.track
         };
       });
     }, context.state ? context.state.user : new URL(window.location).searchParams.get('user'));
   }
 
-  componentDidMount() {
-
+  componentDidMount () {
     var url = new URL(window.location);
     var user = url.searchParams.get('user');
+    var code = url.searchParams.get('code');
+    var access_token = url.searchParams.get('access_token');
+    if (!access_token && window.location.toString().includes('#access_token')) {
+      window.location = window.location.toString().replace('#', '?');
+    }
+
+    user = user || Actions.getCookie('user');
+    Actions.storeCookie('user', user);
+
+    code = code || Actions.getCookie('code');
+    Actions.storeCookie('code', code);
+
+    access_token = access_token || Actions.getCookie('access_token');
+    Actions.storeCookie('access_token', access_token);
 
     if (user) this.setState(function () {
       return {
@@ -31,46 +44,27 @@ class App extends Component {
     setInterval(() => this.updateTracks(context), 5000);
   }
 
-  componentDidUpdate() {
+  componentDidUpdate () {
     document.querySelector('#lastFm').addEventListener('keypress', function (e) {
     var key = e.which || e.keyCode;
     if (key === 13) {
       if ($(this).val()) {
-        window.location.href = "/?user=" + $(this).val();
+        window.location.href = '/?user=' + $(this).val();
       }
     }
     });
   }
 
-  imgLink(track) {
-    var fromTrack = this.imgLinkFromTrack(track);
-    if (fromTrack) return fromTrack;
-
-    Actions.querySpotifyForImage(function (data) { fromTrack = data.albums.items[0].images[1].url;}, track);
-    return fromTrack;
-  }
-
-  imgLinkFromTrack(track) {
-    if (!track || !track.image || !track.image.length) return '';
-
-    if (track.image.length > 2) return track.image[2]['#text'];
-
-    return track.image[track.image.length - 1]['#text'];
-  }
-
-  render() {
+  render () {
     if (!this.state) return (<div></div>);
 
-    console.log(this.props);
     const { tracks, user } = this.state;
     var trackControls = [];
 
     if (tracks) {
       for (var i = 0; i < tracks.length; i++) {
         var track = tracks[i];
-        trackControls.push(<Track key={i} name={track.name} artist={track.artist['#text']}
-        album={track.album['#text']} img={this.imgLink(track)} attr={track.attr}
-        date={track.date} index={i} />);
+        trackControls.push(<Track key={i} track={track} index={i} />);
       }
     }
 
