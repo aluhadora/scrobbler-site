@@ -10,9 +10,8 @@ class Track extends Component {
   }
 
   dateline(attr, date) {
-    if (attr && attr.nowplaying) return 'Now playing';
-    if (!date) return 'Now playing';
-    // return date.uts;
+    if (this.nowPlaying(attr, date)) return 'Now playing';
+
     var d = new Date(0);
     d.setUTCSeconds(date.uts);
     var timeDiff = Date.now() - date.uts * 1000;
@@ -26,15 +25,22 @@ class Track extends Component {
     var hoursDiff = minutesDiff / 60;
     if (hoursDiff < 24) return this.timeline(hoursDiff, 'hour');
 
-    var daysDiff = hoursDiff / 60;
+    var daysDiff = hoursDiff / 24;
     return this.timeline(daysDiff, 'day');
   }
 
+  nowPlaying (attr, date) {
+    if (attr && attr.nowplaying) return true;
+    if (!date) return true;
+
+    return false;
+  }
+
   render() {
-    const { track, index } = this.props;
+    const { track } = this.props;
 
     return (
-      <div className="Track" style={{opacity: index === 0 ? '1' : '0.8'}}>
+      <div className="Track" style={{opacity: this.nowPlaying(track.attr, track.date) ? '1' : '0.8'}}>
         <AlbumArt track={track} />
         <div className="Track-Info">
           <div className="Info-line">
@@ -47,7 +53,7 @@ class Track extends Component {
             <span className="Info-Field">Album:</span> {track.album}
           </div>
           <div className="Info-line" style={{paddingTop: '6px'}}>
-            <span className="Info-Field">{this.dateline(track.attr, track.date)}</span>
+            <span className="Info-Field">{this.dateline.bind(this)(track.attr, track.date)}</span>
           </div>
         </div>
       </div>

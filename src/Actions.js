@@ -21,10 +21,9 @@ export function pullTracks (callback, user) {
        track.album = track.album['#text'];
        track.artist = track.artist['#text'];
        if (i < 5) {
-         track.spotifySource = 'https://open.spotify.com/embed?uri=spotify%3Atrack%3A';
-         var id = searchSpotifyForTrack(track);
-         track.spotifySource += id;
-         if (!id) track.spotifySource = undefined;
+         var urlStart = 'https://open.spotify.com/embed?uri=spotify%3Atrack%3A';
+         track.spotifySource = undefined;
+         searchSpotifyForTrack(track, data => track.spotifySource = urlStart + data);
        }
      }
 
@@ -32,16 +31,17 @@ export function pullTracks (callback, user) {
    });
 }
 
-function searchSpotifyForTrack (track) {
+function searchSpotifyForTrack (track, callback) {
   var code = getCookie('access_token');
   if (!code) {
     var loc = new URL(window.location);
     var urlToken = loc.searchParams.get('access_token');
     code = urlToken || getSpotifyKey();
   }
-  var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name;
+  var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name + ' artist:' + track.artist + ' album:' + track.album;
 
-  if (spotifyQueries[url]) return spotifyQueries[url];
+  if (spotifyQueries[url]) return callback(spotifyQueries[url]);
+  spotifyQueries[url] = 'searching';
 
   $.ajax({
     method: 'Get',
@@ -53,14 +53,16 @@ function searchSpotifyForTrack (track) {
     }
   }).done(data => {
     spotifyQueries[url] = data.tracks.items[0].id;
-    return data.tracks.items[0].id;
+    callback(data.tracks.items[0].id);
   }).fail(data => {
+    spotifyQueries[url] = undefined;
     console.log('failed to search track');
     console.log(data);
   });
 }
 
 function getSpotifyKey() {
+  // window.location = 'https://accounts.spotify.com/authorize/?client_id=6c68f4ce32df44939a77e56c3dfa488e&response_type=token&redirect_uri=http%3A%2F%2Flocalhost:3000%2F';
   window.location = 'https://accounts.spotify.com/authorize/?client_id=6c68f4ce32df44939a77e56c3dfa488e&response_type=token&redirect_uri=https%3A%2F%2Fscrobble-follow.herokuapp.com%2F';
 }
 

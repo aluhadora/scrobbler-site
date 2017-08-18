@@ -64,7 +64,7 @@ class App extends Component {
     if (tracks) {
       for (var i = 0; i < tracks.length; i++) {
         var track = tracks[i];
-        trackControls.push(<Track key={i} track={track} index={i} />);
+        trackControls.push(<Track key={i} track={track} />);
       }
     }
 
