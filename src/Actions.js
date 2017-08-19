@@ -14,6 +14,7 @@ export function pullTracks (callback, user) {
      method: 'Get',
      url: url,
    }).done(data => {
+     if (!data.recenttracks) return callback(data);
      for (var i = 0; i < data.recenttracks.track.length; i++) {
        var track = data.recenttracks.track[i];
        track.img = imgLink(track);
