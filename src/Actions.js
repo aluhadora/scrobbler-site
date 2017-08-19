@@ -13,57 +13,99 @@ export function pullTracks (callback, user) {
    $.ajax({
      method: 'Get',
      url: url,
-     async: false
    }).done(data => {
      for (var i = 0; i < data.recenttracks.track.length; i++) {
        var track = data.recenttracks.track[i];
        track.img = imgLink(track);
        track.album = track.album['#text'];
        track.artist = track.artist['#text'];
-       if (i < 5) {
-         var urlStart = 'https://open.spotify.com/embed?uri=spotify%3Atrack%3A';
-         track.spotifySource = undefined;
-         searchSpotifyForTrack(track, data => track.spotifySource = urlStart + data);
-       }
+       idForPreviousQuery(track);
      }
 
      callback(data);
+
+     fillTracksWithSpotifyLinks(data, callback);
    });
 }
 
+function fillTracksWithSpotifyLinks(data, callback) {
+  for (var j = 0; j < data.recenttracks.track.length; j++) {
+    searchSpotifyForTrack(data.recenttracks.track[j], function () {
+      callback(data);
+    });
+  }
+}
+
+function assignTrackIdToTrack(track, id) {
+  var urlStart = 'https://open.spotify.com/embed?uri=spotify%3Atrack%3A';
+
+  track.spotifySource = id ? urlStart + id : undefined;
+}
+
+function idForPreviousQuery(track) {
+  var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name + ' artist:' + track.artist + ' album:' + track.album;
+
+  var id = spotifyQueries[url];
+  if (!id || id === 'searching') return;
+
+  assignTrackIdToTrack(track, id);
+}
+
 function searchSpotifyForTrack (track, callback) {
+  if (track.spotifySource) return;
+
   var code = getCookie('access_token');
   if (!code) {
     var loc = new URL(window.location);
     var urlToken = loc.searchParams.get('access_token');
-    code = urlToken || getSpotifyKey();
+    code = urlToken;
   }
   var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name + ' artist:' + track.artist + ' album:' + track.album;
 
-  if (spotifyQueries[url]) return callback(spotifyQueries[url]);
+  if (spotifyQueries[url]) {
+    if (spotifyQueries[url] !== 'searching') {
+      assignTrackIdToTrack(track, spotifyQueries[url]);
+      callback();
+    };
+    return;
+  }
   spotifyQueries[url] = 'searching';
 
   $.ajax({
     method: 'Get',
     url: url,
-    async: false,
     headers: {
       'Accept': 'application/json',
       'Authorization': 'Bearer ' + code
     }
   }).done(data => {
-    spotifyQueries[url] = data.tracks.items[0].id;
-    callback(data.tracks.items[0].id);
+    var id = data.tracks.items[0].id
+    spotifyQueries[url] = id;
+    assignTrackIdToTrack(track, id)
+    callback();
   }).fail(data => {
+    if (data.responseText.includes('expired') && code) {
+      storeCookie('access_token', '');
+      getSpotifyKey();
+    }
     spotifyQueries[url] = undefined;
     console.log('failed to search track');
     console.log(data);
   });
 }
 
+
 function getSpotifyKey() {
-  // window.location = 'https://accounts.spotify.com/authorize/?client_id=6c68f4ce32df44939a77e56c3dfa488e&response_type=token&redirect_uri=http%3A%2F%2Flocalhost:3000%2F';
-  window.location = 'https://accounts.spotify.com/authorize/?client_id=6c68f4ce32df44939a77e56c3dfa488e&response_type=token&redirect_uri=https%3A%2F%2Fscrobble-follow.herokuapp.com%2F';
+  const isLocalhost = Boolean(
+    window.location.hostname === 'localhost' ||
+      window.location.hostname === '[::1]' ||
+      window.location.hostname.match(
+        /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+      )
+  );
+
+  window.location = 'https://accounts.spotify.com/authorize/?client_id=6c68f4ce32df44939a77e56c3dfa488e&response_type=token&redirect_uri=' +
+    (isLocalhost ? 'http%3A%2F%2Flocalhost:3000%2F' : 'https%3A%2F%2Fscrobble-follow.herokuapp.com%2F');
 }
 
 export function storeCookie (name, value) {

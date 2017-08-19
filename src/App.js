@@ -5,14 +5,15 @@ import * as Actions from './Actions.js';
 var $ = require('jquery');
 
 class App extends Component {
-  updateTracks (context) {
+  updateTracks () {
     Actions.pullTracks(obj => {
-      context.setState(function () {
+      this.setState(function () {
         return {
           tracks: obj.error ? obj : obj.recenttracks.track
         };
       });
-    }, context.state ? context.state.user : new URL(window.location).searchParams.get('user'));
+      this.forceUpdate();
+    }, this.state.user);
   }
 
   componentDidMount () {
@@ -33,15 +34,15 @@ class App extends Component {
     access_token = access_token || Actions.getCookie('access_token');
     Actions.storeCookie('access_token', access_token);
 
-    if (user) this.setState(function () {
+    this.setState(function () {
       return {
         user: user
       };
-    });
+    }, function () {
+      this.updateTracks.bind(this)();
+      setInterval(this.updateTracks.bind(this), 5000);
+    }.bind(this));
 
-    var context = this;
-    this.updateTracks(context);
-    setInterval(() => this.updateTracks(context), 5000);
   }
 
   componentDidUpdate () {
