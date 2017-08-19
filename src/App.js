@@ -17,22 +17,9 @@ class App extends Component {
   }
 
   componentDidMount () {
-    var url = new URL(window.location);
-    var user = url.searchParams.get('user');
-    var code = url.searchParams.get('code');
-    var access_token = url.searchParams.get('access_token');
-    if (!access_token && window.location.toString().includes('#access_token')) {
-      window.location = window.location.toString().replace('#', '?');
-    }
-
-    user = user || Actions.getCookie('user');
-    Actions.storeCookie('user', user);
-
-    code = code || Actions.getCookie('code');
-    Actions.storeCookie('code', code);
-
-    access_token = access_token || Actions.getCookie('access_token');
-    Actions.storeCookie('access_token', access_token);
+    var user = this.storeParam('user');
+    this.storeParam('code');
+    this.storeParam('access_token');
 
     this.setState(function () {
       return {
@@ -42,7 +29,15 @@ class App extends Component {
       this.updateTracks.bind(this)();
       setInterval(this.updateTracks.bind(this), 5000);
     }.bind(this));
+  }
 
+  storeParam(name) {
+    var loc = window.location.toString().replace('#access_token', '?access_token');
+    var url = new URL(loc);
+
+    var value = url.searchParams.get(name) || Actions.getCookie(name);
+    Actions.storeCookie(name, value);
+    return value;
   }
 
   componentDidUpdate () {

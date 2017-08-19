@@ -35,10 +35,10 @@
 }
 
 .Spotify-Play-Wrapper {
-  height: 68px;
-  width: 68px;
-  left: calc(1em + 14px);
-  top: 14px;
+  height: 65.5px;
+  width: 65.5px;
+  left: calc(1em + 15px);
+  top: 16px;
   position: absolute;
   overflow: hidden;
   border-radius: 50%;
@@ -52,8 +52,8 @@
 
 iframe {
   position: absolute;
-  left: -8px;
-  top: -8px;
+  left: -7.5px;
+  top: -7.5px;
 }
 
 .Spotify-Play:hover{

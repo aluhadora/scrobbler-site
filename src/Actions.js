@@ -29,7 +29,7 @@ export function pullTracks (callback, user) {
 }
 
 function fillTracksWithSpotifyLinks(data, callback) {
-  for (var j = 0; j < data.recenttracks.track.length; j++) {
+  for (var j = 0; j < Math.min(data.recenttracks.track.length, 10); j++) {
     searchSpotifyForTrack(data.recenttracks.track[j], function () {
       callback(data);
     });
@@ -42,33 +42,30 @@ function assignTrackIdToTrack(track, id) {
   track.spotifySource = id ? urlStart + id : undefined;
 }
 
-function idForPreviousQuery(track) {
-  var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name + ' artist:' + track.artist + ' album:' + track.album;
+function idForPreviousQuery(track, callback) {
+  var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name;
+  if (track.artist) url += ' artist:' + track.artist;
+  if (track.album) url += ' album:' + track.album;
 
   var id = spotifyQueries[url];
-  if (!id || id === 'searching') return;
+  if (!id || id === 'searching' || id === 'not found') return id;
 
   assignTrackIdToTrack(track, id);
+  if (callback) callback();
+
+  return id;
 }
 
 function searchSpotifyForTrack (track, callback) {
   if (track.spotifySource) return;
 
-  var code = getCookie('access_token');
-  if (!code) {
-    var loc = new URL(window.location);
-    var urlToken = loc.searchParams.get('access_token');
-    code = urlToken;
-  }
-  var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name + ' artist:' + track.artist + ' album:' + track.album;
+  var code = getCode();
 
-  if (spotifyQueries[url]) {
-    if (spotifyQueries[url] !== 'searching') {
-      assignTrackIdToTrack(track, spotifyQueries[url]);
-      callback();
-    };
-    return;
-  }
+  var url = 'https://api.spotify.com/v1/search?type=track&q=track:' + track.name;
+  if (track.artist) url += ' artist:' + track.artist;
+  if (track.album) url += ' album:' + track.album;
+
+  if (idForPreviousQuery(track, callback)) return;
   spotifyQueries[url] = 'searching';
 
   $.ajax({
@@ -79,16 +76,21 @@ function searchSpotifyForTrack (track, callback) {
       'Authorization': 'Bearer ' + code
     }
   }).done(data => {
+    if (data.tracks && !data.tracks.items.length) {
+      spotifyQueries[url] = 'not found';
+      return;
+    }
+
     var id = data.tracks.items[0].id
     spotifyQueries[url] = id;
     assignTrackIdToTrack(track, id)
     callback();
   }).fail(data => {
-    if (data.responseText.includes('expired') && code) {
+    spotifyQueries[url] = undefined;
+    if ((data.responseText.includes('expired')) || data.responseText.includes('Invalid access token'))  {
       storeCookie('access_token', '');
       getSpotifyKey();
     }
-    spotifyQueries[url] = undefined;
     console.log('failed to search track');
     console.log(data);
   });
@@ -128,9 +130,22 @@ export function getCookie (cname) {
     return '';
 }
 
+export function getCode() {
+  var code = getCookie('access_token');
+
+  if (!code) {
+    var loc = window.location.toString().replace('#access_token', '?access_token');
+    var url = new URL(loc);
+    var urlToken = url.searchParams.get('access_token');
+    code = urlToken;
+  }
+
+  return code;
+}
+
 export function querySpotifyForImage (callback, track) {
-  // var url = 'https://api.spotify.com/v1/search?q=' + track.album['#text'] +
-  //  '&type=album';
+  // var code = getCode();
+  // var url = 'https://api.spotify.com/v1/search?q=' + track.album + '&type=album';
   //
   // if (spotifyQueries[url]) return callback(spotifyQueries[url]);
   //
@@ -139,13 +154,14 @@ export function querySpotifyForImage (callback, track) {
   //   url: url,
   //   headers: {
   //     'Accept': 'application/json',
-  //     'Authorization': 'Bearer ' + process.env.REACT_APP_SPOTIFY_TOKEN
+  //     'Authorization': 'Bearer ' + code
   //   }
   // }).done(data => {
   //   spotifyQueries[url] = data;
   //   callback(data);
   // });
 }
+
 function imgLink(track) {
   var fromTrack = imgLinkFromTrack(track);
   if (fromTrack) return fromTrack;
